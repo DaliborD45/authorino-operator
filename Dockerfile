@@ -16,16 +16,25 @@ COPY controllers/ controllers/
 COPY pkg/ pkg/
 
 ARG OPERATOR_VERSION=latest
+#TODO: this DEFAULT_AUTHORINO_IMAGE contains a bug, where it takes different naming as the Makefile provides, thats why i changed this value for now
 ARG DEFAULT_AUTHORINO_IMAGE=quay.io/kuadrant/authorino:latest
 ARG GIT_SHA=unknown
 ARG DIRTY=unknown
 ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT
+ARG DATA_RACE=false
 
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT} \
-    go build -a -ldflags "-X main.version=${OPERATOR_VERSION} -X main.gitSHA=${GIT_SHA} -X main.dirty=${DIRTY} -X github.com/kuadrant/authorino-operator/pkg/reconcilers.DefaultAuthorinoImage=${DEFAULT_AUTHORINO_IMAGE}" \
-    -o /tmp/manager main.go
+RUN if [ "${DATA_RACE}" = "true" ]; then  \
+    CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT} \
+        go build -race -a -ldflags "-X main.version=${OPERATOR_VERSION} -X main.gitSHA=${GIT_SHA} -X main.dirty=${DIRTY} -X github.com/kuadrant/authorino-operator/pkg/reconcilers.DefaultAuthorinoImage=${DEFAULT_AUTHORINO_IMAGE}" \
+        -o /tmp/manager main.go; \
+    else \
+    CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT} \
+        go build -a -ldflags "-X main.version=${OPERATOR_VERSION} -X main.gitSHA=${GIT_SHA} -X main.dirty=${DIRTY} -X github.com/kuadrant/authorino-operator/pkg/reconcilers.DefaultAuthorinoImage=${DEFAULT_AUTHORINO_IMAGE}" \
+        -o /tmp/manager main.go; \
+    fi
+
 
 # Use Red Hat minimal base image to package the binary
 # https://catalog.redhat.com/software/containers/ubi9-minimal

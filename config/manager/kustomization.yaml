@@ -15,5 +15,5 @@ configMapGenerator:
 
 images:
 - name: controller
-  newName: quay.io/kuadrant/authorino-operator
+  newName: quay.io/ddetko/authorino-operator
   newTag: latest
