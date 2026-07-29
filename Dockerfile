@@ -1,6 +1,8 @@
 # Build the authorino binary
+ARG DATA_RACE=false
+
 # https://catalog.redhat.com/software/containers/ubi10/go-toolset
-FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi10/go-toolset:1.26 AS builder
+FROM --platform=$TARGETPLATFORM registry.access.redhat.com/ubi10/go-toolset:1.26 AS builder
 WORKDIR /workspace
 
 # Copy the Go Modules manifests
@@ -16,7 +18,6 @@ COPY controllers/ controllers/
 COPY pkg/ pkg/
 
 ARG OPERATOR_VERSION=latest
-#TODO: this DEFAULT_AUTHORINO_IMAGE contains a bug, where it takes different naming as the Makefile provides, thats why i changed this value for now
 ARG DEFAULT_AUTHORINO_IMAGE=quay.io/kuadrant/authorino:latest
 ARG GIT_SHA=unknown
 ARG DIRTY=unknown
@@ -36,9 +37,12 @@ RUN if [ "${DATA_RACE}" = "true" ]; then  \
     fi
 
 
-# Use Red Hat minimal base image to package the binary
+# CGO_ENABLED=1 (race) produces a dynamically linked binary requiring glibc (ubi9 full)
 # https://catalog.redhat.com/software/containers/ubi9-minimal
-FROM registry.access.redhat.com/ubi9-minimal:latest
+FROM registry.access.redhat.com/ubi9:latest AS runtime-true
+FROM registry.access.redhat.com/ubi9-minimal:latest AS runtime-false
+
+FROM runtime-${DATA_RACE}
 WORKDIR /
 COPY --from=builder /tmp/manager .
 USER 1001

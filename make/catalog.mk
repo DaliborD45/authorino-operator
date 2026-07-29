@@ -52,7 +52,7 @@ catalog: opm ## Generate catalog content and validate.
 .PHONY: catalog-build
 catalog-build: ## Build a catalog image.
 	# Build the Catalog
-	docker build $(PROJECT_DIR)/catalog -f $(PROJECT_DIR)/catalog/authorino-operator-catalog.Dockerfile -t $(CATALOG_IMG)
+	$(CONTAINER_ENGINE) build $(PROJECT_DIR)/catalog -f $(PROJECT_DIR)/catalog/authorino-operator-catalog.Dockerfile -t $(CATALOG_IMG)
 
 # Push the catalog image.
 .PHONY: catalog-push

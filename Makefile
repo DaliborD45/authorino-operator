@@ -100,6 +100,9 @@ endif
 # Container Engine to be used for building image and with kind
 CONTAINER_ENGINE ?= docker
 
+# Set to 'true' to enable the Go race detector in the built binary (for testing purposes)
+DATA_RACE ?= false
+
 # Build file used to store replaces/authorinoImage options.
 BUILD_CONFIG_FILE ?= build.yaml
 DEFAULT_AUTHORINO_IMAGE = $(DEFAULT_REGISTRY)/$(DEFAULT_ORG)/authorino:$(AUTHORINO_IMAGE_TAG)
@@ -262,10 +265,10 @@ run: manifests generate fmt vet ## Run a controller from your host.
 docker-build: GIT_SHA=$(shell git rev-parse HEAD || echo "unknown")
 docker-build: DIRTY=$(shell $(PROJECT_DIR)/utils/check-git-dirty.sh || echo "unknown")
 docker-build:  ## Build docker image with the manager.
-	docker build --build-arg OPERATOR_VERSION=$(VERSION) --build-arg GIT_SHA=$(GIT_SHA) --build-arg DIRTY=$(DIRTY) --build-arg ACTUAL_DEFAULT_AUTHORINO_IMAGE=$(ACTUAL_DEFAULT_AUTHORINO_IMAGE) --build-arg QUAY_IMAGE_EXPIRY=$(QUAY_IMAGE_EXPIRY) -t $(OPERATOR_IMAGE) .
+	$(CONTAINER_ENGINE) build $(CONTAINER_ENGINE_EXTRA_FLAGS) --build-arg OPERATOR_VERSION=$(VERSION) --build-arg GIT_SHA=$(GIT_SHA) --build-arg DIRTY=$(DIRTY) --build-arg DEFAULT_AUTHORINO_IMAGE=$(ACTUAL_DEFAULT_AUTHORINO_IMAGE) --build-arg QUAY_IMAGE_EXPIRY=$(QUAY_IMAGE_EXPIRY) --build-arg DATA_RACE=$(DATA_RACE) -t $(OPERATOR_IMAGE) .
 
 docker-push: ## Push docker image with the manager.
-	docker push ${OPERATOR_IMAGE}
+	$(CONTAINER_ENGINE) push ${OPERATOR_IMAGE}
 
 ##@ Deployment
 
@@ -367,7 +370,7 @@ endif
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
-	docker build --build-arg QUAY_IMAGE_EXPIRY=$(QUAY_IMAGE_EXPIRY) -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	$(CONTAINER_ENGINE) build --build-arg QUAY_IMAGE_EXPIRY=$(QUAY_IMAGE_EXPIRY) -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
