@@ -3828,7 +3828,7 @@ spec:
         - /manager
         env:
         - name: RELATED_IMAGE_AUTHORINO
-          value: quay.io/kuadrant/authorino:latest
+          value: quay.io/ddetko/authorino:latest
         image: quay.io/ddetko/authorino-operator:latest
         livenessProbe:
           httpGet:

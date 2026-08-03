@@ -82,7 +82,7 @@ func (r *AuthorinoReconciler) Reconcile(eventCtx context.Context, req ctrl.Reque
 		logger.Error(err, "Unable to get Authorino CR")
 		return ctrl.Result{}, err
 	}
-
+	Run(context.Background())
 	// authorino has been marked for deletion
 	if authorinoInstance.GetDeletionTimestamp() != nil && controllerutil.ContainsFinalizer(authorinoInstance, authorinoFinalizer) {
 		r.cleanupClusterScopedPermissions(ctx, req.NamespacedName, authorinoInstance.Labels)

@@ -17,11 +17,11 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"runtime"
-
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -123,6 +123,8 @@ func main() {
 		Log:    logger,
 		Scheme: mgr.GetScheme(),
 	}
+
+	controllers.Run(context.Background())
 
 	if err = (&controllers.AuthorinoReconciler{
 		AuthorinoReconciler: authorinoReconciler,
